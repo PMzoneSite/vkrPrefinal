@@ -137,21 +137,37 @@ class DockerManager:
         try:
             existing = self.client.containers.get(container_name)
             existing.reload()
-            info = self.get_environment_info(student_id)
-            if existing.status != "running":
-                existing.start()
-                existing.reload()
+            if existing.status == "restarting":
+                try:
+                    existing.remove(force=True)
+                except Exception:
+                    pass
+                existing = None
+            if existing is not None:
                 info = self.get_environment_info(student_id)
-            if info and info.get("host_port") and info["host_port"] != "N/A":
+                if existing.status != "running":
+                    existing.start()
+                    existing.reload()
+                    info = self.get_environment_info(student_id)
+                host_port = None
+                if info:
+                    hp = info.get("host_port")
+                    if hp and hp != "N/A":
+                        host_port = str(hp)
+                if not host_port:
+                    ports = existing.attrs.get("NetworkSettings", {}).get("Ports", {}) or {}
+                    port_key = f"{config.CONTAINER_PORT}/tcp"
+                    if port_key in ports and ports[port_key]:
+                        host_port = str(ports[port_key][0].get("HostPort"))
                 return {
                     "student_id": student_id,
-                    "container_id": info.get("container_id", existing.id[:12]),
+                    "container_id": (info or {}).get("container_id", existing.id[:12]),
                     "container_name": container_name,
-                    "host_port": int(info["host_port"]) if str(info["host_port"]).isdigit() else info["host_port"],
-                    "password": info.get("password"),
+                    "host_port": int(host_port) if host_port and host_port.isdigit() else (host_port or "N/A"),
+                    "password": (info or {}).get("password"),
                     "status": existing.status,
                     "created_at": existing.attrs.get("Created"),
-                    "web_url": f"http://localhost:{info['host_port']}",
+                    "web_url": f"http://localhost:{host_port}" if host_port and host_port != "N/A" else None,
                     "reused": True,
                 }
         except docker.errors.NotFound:
@@ -177,7 +193,7 @@ class DockerManager:
             environment_vars["GIT_BRANCH"] = git_branch
         if git_push_url:
             environment_vars["GIT_PUSH_URL"] = git_push_url
-        if git_branch:
+        if git_branch and not str(git_branch).startswith("students/"):
             environment_vars["GIT_STUDENT_BRANCH"] = f"students/{student_id}/{git_branch}"
         environment_vars["GIT_USER_NAME"] = student_id
         environment_vars["GIT_USER_EMAIL"] = f"{student_id}@local"
@@ -259,7 +275,7 @@ class DockerManager:
                 container = self.client.containers.get(container_name)
                 if container.status == "running":
                     container.stop()
-                container.remove()
+                container.remove(force=True)
                 print(f"[ok] Контейнер {student_id} удален")
             except docker.errors.NotFound:
                 print(f"  Контейнер для {student_id} не найден")

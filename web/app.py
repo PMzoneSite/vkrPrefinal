@@ -471,9 +471,11 @@ async def create_my_environment(
     try:
         git_user, git_token = resolve_git_http_credentials()
         git_push_url = None
+        effective_branch = assignment_branch
         if use_per_student_repo:
             student_repo_http, git_push_url = ensure_student_repo_and_seed(student_id, assignment_branch, git_repo_url)
             git_repo_url = _inject_basic_auth(student_repo_http, git_user, git_token)
+            effective_branch = f"students/{student_id}/{assignment_branch}"
         elif git_push_url_template:
             git_push_url = git_push_url_template.format(student_id=student_id, branch=assignment_branch)
             git_push_url = _inject_basic_auth(git_push_url, git_user, git_token)
@@ -482,7 +484,7 @@ async def create_my_environment(
             student_id,
             course,
             git_repo_url=git_repo_url,
-            git_branch=assignment_branch,
+            git_branch=effective_branch,
             git_push_url=git_push_url,
         )
         return {"success": True, "message": "Среда готова", "data": result}
@@ -546,9 +548,11 @@ async def create_environment_api(
         git_push_url_template = os.getenv("ASSIGNMENTS_PUSH_URL_TEMPLATE")
         git_user, git_token = resolve_git_http_credentials()
         git_push_url = None
+        effective_branch = assignment_branch
         if use_per_student_repo:
             student_repo_http, git_push_url = ensure_student_repo_and_seed(student_id, assignment_branch, git_repo_url)
             git_repo_url = _inject_basic_auth(student_repo_http, git_user, git_token)
+            effective_branch = f"students/{student_id}/{assignment_branch}"
         elif git_push_url_template:
             git_push_url = git_push_url_template.format(student_id=student_id, branch=assignment_branch)
             git_push_url = _inject_basic_auth(git_push_url, git_user, git_token)
@@ -558,7 +562,7 @@ async def create_environment_api(
             student_id,
             course,
             git_repo_url=git_repo_url,
-            git_branch=assignment_branch,
+            git_branch=effective_branch,
             git_push_url=git_push_url,
         )
         

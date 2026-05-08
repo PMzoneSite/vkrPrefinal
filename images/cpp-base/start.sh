@@ -11,8 +11,18 @@ if [ ! -f "/home/student/workspace/.project-setup" ]; then
 fi
 
 PROJECT_DIR="${PROJECT_DIR:-/home/student/workspace/project}"
+normalize_git_url() {
+    local u="$1"
+    u="${u//localhost/host.docker.internal}"
+    u="${u//127.0.0.1/host.docker.internal}"
+    echo "$u"
+}
 
 if [ -n "${GIT_REPO_URL:-}" ]; then
+    GIT_REPO_URL="$(normalize_git_url "$GIT_REPO_URL")"
+    if [ -n "${GIT_PUSH_URL:-}" ]; then
+        GIT_PUSH_URL="$(normalize_git_url "$GIT_PUSH_URL")"
+    fi
     if [ ! -d "$PROJECT_DIR/.git" ]; then
         rm -rf "$PROJECT_DIR"
         mkdir -p "$PROJECT_DIR"

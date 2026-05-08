@@ -30,7 +30,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs
 
 # Устанавливаем code-server (VS Code для web)
-RUN curl -fsSL https://code-server.dev/install.sh | sh
+RUN curl -fsSL https://code-server.dev/install.sh | sh && command -v code-server
 
 # Создаем рабочую директорию
 RUN mkdir -p /home/student/workspace && \
