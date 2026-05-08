@@ -1,0 +1,410 @@
+{
+  "admin": {
+    "password": "admin123",
+    "role": "admin"
+  },
+  "teacher": {
+    "password": "teacher123",
+    "role": "teacher"
+  },
+  "student001": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student002": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student003": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student004": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student005": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student006": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student007": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student008": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student009": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student010": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student011": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student012": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student013": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student014": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student015": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student016": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student017": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student018": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student019": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student020": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student021": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student022": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student023": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student024": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student025": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student026": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student027": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student028": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student029": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student030": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student031": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student032": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student033": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student034": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student035": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student036": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student037": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student038": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student039": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student040": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student041": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student042": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student043": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student044": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student045": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student046": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student047": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student048": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student049": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student050": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student051": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student052": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student053": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student054": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student055": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student056": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student057": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student058": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student059": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student060": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student061": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student062": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student063": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student064": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student065": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student066": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student067": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student068": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student069": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student070": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student071": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student072": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student073": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student074": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student075": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student076": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student077": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student078": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student079": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student080": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student081": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student082": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student083": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student084": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student085": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student086": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student087": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student088": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student089": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student090": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student091": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student092": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student093": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student094": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student095": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student096": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student097": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student098": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student099": {
+    "password": "student123",
+    "role": "student"
+  },
+  "student100": {
+    "password": "student123",
+    "role": "student"
+  }
+}

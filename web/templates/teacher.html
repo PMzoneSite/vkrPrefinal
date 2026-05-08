@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель преподавателя</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .student-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+        .student-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .student-item:hover {
+            background: #f8f9fa;
+        }
+        .student-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .course-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .course-python { background: #e3f2fd; color: #1565c0; }
+        .course-web { background: #e8f5e9; color: #2e7d32; }
+        .course-data { background: #fff3e0; color: #ef6c00; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">👨‍🏫 Панель преподавателя</div>
+        <div class="nav-user">
+            {{ username }} | 
+            <a href="/logout" class="logout-link">Выйти</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Добро пожаловать, преподаватель!</h1>
+            <p>Управление средами разработки для ваших студентов</p>
+        </div>
+        <!-- Например, после заголовка <h1>Управление средами</h1> -->
+<div style="text-align: center; margin: 30px 0;">
+    <h2>📝 Новая система заданий</h2>
+    <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
+        <a href="/assignments" class="btn btn-primary" style="padding: 15px 30px; font-size: 18px;">
+            📋 Перейти к заданиям
+        </a>
+        <a href="/assignments/create" class="btn btn-success" style="padding: 15px 30px; font-size: 18px;">
+            + Создать задание
+        </a>
+    </div>
+</div>
+        <!-- Быстрая статистика -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ environments|length }}</div>
+                <div class="stat-label">Всего сред</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">
+                    {{ environments|selectattr('status', 'equalto', 'running')|list|length }}
+                </div>
+                <div class="stat-label">Активных</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ student_users|length }}</div>
+                <div class="stat-label">Студентов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">
+                    {% set unique_ports = [] %}
+                    {% for env in environments %}
+                        {% if env.host_port not in unique_ports and env.host_port != 'N/A' %}
+                            {% set _ = unique_ports.append(env.host_port) %}
+                        {% endif %}
+                    {% endfor %}
+                    {{ unique_ports|length }}
+                </div>
+                <div class="stat-label">Занято портов</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>👥 Управление студентами</h2>
+                <button class="btn btn-success" onclick="showCreateModal()">
+                    + Создать среду
+                </button>
+            </div>
+            
+            <!-- Фильтры -->
+            <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <input type="text" id="searchInput" placeholder="Поиск студента..." class="form-control">
+                <select id="statusFilter" class="form-control" style="width: 150px;">
+                    <option value="all">Все статусы</option>
+                    <option value="running">Активные</option>
+                    <option value="exited">Остановленные</option>
+                    <option value="not_created">Не созданы</option>
+                </select>
+                <button class="btn btn-info" onclick="applyFilters()">Применить</button>
+                <button class="btn btn-secondary" onclick="resetFilters()">Сбросить</button>
+            </div>
+            
+            <!-- Список студентов -->
+            <div class="student-list">
+                {% for student in student_users %}
+                    {% set env = environments|selectattr('student_id', 'equalto', student)|first %}
+                    <div class="student-item" data-status="{{ env.status if env else 'not_created' }}">
+                        <div>
+                            <strong style="font-size: 1.1rem;">{{ student }}</strong>
+                            {% if env %}
+                                <span class="status-badge status-{{ env.status }}" style="margin-left: 10px;">
+                                    {{ 'активна' if env.status == 'running' else 'остановлена' if env.status == 'exited' else env.status }}
+                                </span>
+                                {% if env.host_port != 'N/A' %}
+                                    <span style="margin-left: 10px; color: #666;">
+                                        Порт: {{ env.host_port }}
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="status-badge" style="background: #f8f9fa; color: #666; margin-left: 10px;">
+                                    среда не создана
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="student-actions">
+                            {% if env and env.status == 'running' %}
+                                <a href="http://localhost:{{ env.host_port }}" 
+                                   target="_blank" 
+                                   class="btn btn-primary btn-sm">
+                                    Открыть среду
+                                </a>
+                                <button class="btn btn-warning btn-sm" 
+                                        onclick="stopEnvironment('{{ student }}')">
+                                    Остановить
+                                </button>
+                            {% elif env and env.status == 'exited' %}
+                                <button class="btn btn-success btn-sm" 
+                                        onclick="createEnvironment('{{ student }}')">
+                                    Запустить
+                                </button>
+                            {% else %}
+                                <button class="btn btn-success btn-sm" 
+                                        onclick="createEnvironment('{{ student }}')">
+                                    Создать среду
+                                </button>
+                            {% endif %}
+                            
+                            {% if env %}
+                                <button class="btn btn-danger btn-sm" 
+                                        onclick="removeEnvironment('{{ student }}')">
+                                    Удалить
+                                </button>
+                            {% endif %}
+                            
+                            <button class="btn btn-info btn-sm" 
+                                    onclick="viewStudent('{{ student }}')">
+                                Профиль
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="table-info" style="margin-top: 15px;">
+                Показано {{ student_users|length }} студентов
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🚀 Быстрое создание</h2>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="quickStudentId" placeholder="ID студента" class="form-control">
+                <select id="quickCourse" class="form-control" style="width: 150px;">
+                    <option value="python">Python</option>
+                    <option value="web">Web Development</option>
+                    <option value="data">Data Science</option>
+                    <option value="cpp">C++</option>
+                </select>
+                <button class="btn btn-success" onclick="quickCreate()">
+                    Быстро создать
+                </button>
+            </div>
+            <div id="quickResult" style="margin-top: 10px;"></div>
+        </div>
+        
+        <div class="card">
+            <h2>📊 Групповые операции</h2>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-warning" onclick="stopAllEnvironments()">
+                    ⏸️ Остановить все среды
+                </button>
+                <button class="btn btn-danger" onclick="removeAllStopped()">
+                    🗑️ Удалить остановленные
+                </button>
+                <button class="btn btn-info" onclick="refreshData()">
+                    🔄 Обновить данные
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно создания среды -->
+    <div id="createModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="hideCreateModal()">&times;</span>
+            <h3>Создание новой среды</h3>
+            
+            <div class="form-group">
+                <label>ID студента:</label>
+                <input type="text" id="modalStudentId" class="form-control" 
+                       placeholder="student001 или новое имя">
+            </div>
+            
+            <div class="form-group">
+                <label>Курс:</label>
+                <select id="modalCourse" class="form-control">
+                    <option value="python">Python разработка</option>
+                    <option value="web">Web Development</option>
+                    <option value="data">Data Science</option>
+                    <option value="cpp">C++ Programming</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Дополнительные параметры:</label>
+                <div style="margin-top: 10px;">
+                    <label>
+                        <input type="checkbox" id="autoOpen" checked>
+                        Автоматически открыть среду после создания
+                    </label>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button class="btn btn-success" onclick="submitCreate()">
+                    Создать среду
+                </button>
+                <button class="btn btn-secondary" onclick="hideCreateModal()">
+                    Отмена
+                </button>
+            </div>
+            
+            <div id="modalResult" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно информации о студенте -->
+    <div id="studentModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="hideStudentModal()">&times;</span>
+            <div id="studentModalContent">
+                <!-- Контент загружается динамически -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Модальные окна
+        function showCreateModal() {
+            document.getElementById('createModal').style.display = 'block';
+        }
+        
+        function hideCreateModal() {
+            document.getElementById('createModal').style.display = 'none';
+            document.getElementById('modalResult').innerHTML = '';
+        }
+        
+        function showStudentModal(content) {
+            document.getElementById('studentModalContent').innerHTML = content;
+            document.getElementById('studentModal').style.display = 'block';
+        }
+        
+        function hideStudentModal() {
+            document.getElementById('studentModal').style.display = 'none';
+        }
+        
+        // Закрытие модальных окон при клике вне их
+        window.onclick = function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let modal of modals) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+        }
+        
+        // Функции управления
+        function createEnvironment(studentId, course = 'python') {
+            const formData = new FormData();
+            formData.append('student_id', studentId);
+            formData.append('course', course);
+            
+            fetch('/api/environments/create', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`✅ Среда создана!\nURL: ${data.data.web_url}\nПароль: ${data.data.password}`);
+                    location.reload();
+                } else {
+                    alert(`❌ Ошибка: ${data.message}`);
+                }
+            });
+        }
+        
+        function stopEnvironment(studentId) {
+            if (!confirm(`Остановить среду студента ${studentId}?`)) return;
+            
+            fetch(`/api/environments/${studentId}/stop`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            });
+        }
+        
+        function removeEnvironment(studentId) {
+            if (!confirm(`Удалить среду студента ${studentId}? Все данные будут потеряны!`)) return;
+            
+            fetch(`/api/environments/${studentId}/remove`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            });
+        }
+        
+        function viewStudent(studentId) {
+            fetch(`/api/environment/${studentId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const env = data.data;
+                    let content = `
+                        <h3>👤 Студент: ${studentId}</h3>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                            <p><strong>Статус:</strong> ${env.status}</p>
+                            <p><strong>Контейнер ID:</strong> ${env.container_id}</p>
+                            <p><strong>Порт:</strong> ${env.host_port}</p>
+                            <p><strong>Создана:</strong> ${new Date(env.created).toLocaleString()}</p>
+                            <p><strong>Образ:</strong> ${env.image}</p>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <a href="/student/${studentId}" class="btn btn-primary">
+                                Перейти в профиль
+                            </a>
+                            ${env.status === 'running' ? 
+                                `<a href="http://localhost:${env.host_port}" target="_blank" class="btn btn-success">
+                                    Открыть среду
+                                </a>` : ''
+                            }
+                        </div>
+                    `;
+                    showStudentModal(content);
+                } else {
+                    showStudentModal(`<p>${data.message}</p>`);
+                }
+            });
+        }
+        
+        function quickCreate() {
+            const studentId = document.getElementById('quickStudentId').value;
+            const course = document.getElementById('quickCourse').value;
+            
+            if (!studentId) {
+                alert('Введите ID студента');
+                return;
+            }
+            
+            createEnvironment(studentId, course);
+        }
+        
+        function submitCreate() {
+            const studentId = document.getElementById('modalStudentId').value;
+            const course = document.getElementById('modalCourse').value;
+            const autoOpen = document.getElementById('autoOpen').checked;
+            
+            if (!studentId) {
+                document.getElementById('modalResult').innerHTML = 
+                    '<div class="alert alert-danger">Введите ID студента</div>';
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('student_id', studentId);
+            formData.append('course', course);
+            
+            fetch('/api/environments/create', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let message = `✅ Среда создана!<br>
+                                  <strong>URL:</strong> <a href="${data.data.web_url}" target="_blank">${data.data.web_url}</a><br>
+                                  <strong>Пароль:</strong> ${data.data.password}`;
+                    
+                    document.getElementById('modalResult').innerHTML = 
+                        `<div class="alert alert-success">${message}</div>`;
+                    
+                    if (autoOpen) {
+                        setTimeout(() => {
+                            window.open(data.data.web_url, '_blank');
+                        }, 1000);
+                    }
+                    
+                    setTimeout(() => {
+                        hideCreateModal();
+                        location.reload();
+                    }, 3000);
+                } else {
+                    document.getElementById('modalResult').innerHTML = 
+                        `<div class="alert alert-danger">❌ ${data.message}</div>`;
+                }
+            });
+        }
+        
+        // Фильтры
+        function applyFilters() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            const items = document.querySelectorAll('.student-item');
+            items.forEach(item => {
+                const studentName = item.querySelector('strong').textContent.toLowerCase();
+                const status = item.getAttribute('data-status');
+                
+                let show = true;
+                
+                if (searchText && !studentName.includes(searchText)) {
+                    show = false;
+                }
+                
+                if (statusFilter !== 'all' && status !== statusFilter) {
+                    show = false;
+                }
+                
+                item.style.display = show ? 'flex' : 'none';
+            });
+        }
+        
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = 'all';
+            
+            const items = document.querySelectorAll('.student-item');
+            items.forEach(item => {
+                item.style.display = 'flex';
+            });
+        }
+        
+        // Групповые операции
+        function stopAllEnvironments() {
+            if (!confirm('Остановить ВСЕ активные среды?')) return;
+            
+            fetch('/api/environments')
+            .then(response => response.json())
+            .then(data => {
+                const runningEnvs = data.data.filter(env => env.status === 'running');
+                let completed = 0;
+                
+                runningEnvs.forEach(env => {
+                    fetch(`/api/environments/${env.student_id}/stop`, {
+                        method: 'POST'
+                    })
+                    .then(() => {
+                        completed++;
+                        if (completed === runningEnvs.length) {
+                            alert(`✅ Остановлено ${completed} сред`);
+                            location.reload();
+                        }
+                    });
+                });
+                
+                if (runningEnvs.length === 0) {
+                    alert('Нет активных сред для остановки');
+                }
+            });
+        }
+        
+        function removeAllStopped() {
+            if (!confirm('Удалить ВСЕ остановленные среды? Данные будут потеряны!')) return;
+            
+            fetch('/api/environments')
+            .then(response => response.json())
+            .then(data => {
+                const stoppedEnvs = data.data.filter(env => env.status === 'exited');
+                let completed = 0;
+                
+                stoppedEnvs.forEach(env => {
+                    fetch(`/api/environments/${env.student_id}/remove`, {
+                        method: 'POST'
+                    })
+                    .then(() => {
+                        completed++;
+                        if (completed === stoppedEnvs.length) {
+                            alert(`✅ Удалено ${completed} сред`);
+                            location.reload();
+                        }
+                    });
+                });
+                
+                if (stoppedEnvs.length === 0) {
+                    alert('Нет остановленных сред для удаления');
+                }
+            });
+        }
+        
+        function refreshData() {
+            location.reload();
+        }
+        
+        // Поиск при вводе
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        
+        // Enter для быстрого создания
+        document.getElementById('quickStudentId').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                quickCreate();
+            }
+        });
+        
+        // Автофокус в модальном окне
+        function showCreateModal() {
+            document.getElementById('createModal').style.display = 'block';
+            document.getElementById('modalStudentId').focus();
+        }
+    </script>
+</body>
+</html>

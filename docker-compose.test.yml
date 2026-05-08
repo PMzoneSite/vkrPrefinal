@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  student-env:
+    build:
+      context: ./images/python-base
+      dockerfile: Dockerfile
+    container_name: student-test-env
+    ports:
+      - "8080:8080"    # Web IDE
+      - "2222:2222"    # SSH (опционально)
+    environment:
+      - CODE_PASSWORD=student123
+    volumes:
+      # Docker volume для данных студента (сохраняется между перезапусками)
+      - student-workspace:/home/student/workspace
+      # Если хотите монтировать папку с Windows:
+      # - ./student-data:/home/student/workspace
+    restart: unless-stopped
+
+volumes:
+  student-workspace:

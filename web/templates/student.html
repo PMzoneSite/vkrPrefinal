@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Моя среда разработки</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .password-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .password-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .password-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 16px;
+        }
+        .copy-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .copy-btn:hover {
+            background: #2980b9;
+        }
+        .show-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .show-btn:hover {
+            background: #27ae60;
+        }
+        .instructions-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🎓 Студенческая среда</div>
+        <div class="nav-user">
+            {{ student_id }} | 
+            <a href="/logout" class="logout-link">Выйти</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="header">
+            <h1>👋 Добро пожаловать, {{ student_id }}!</h1>
+            <p>Ваша персональная среда разработки</p>
+        </div>
+
+        <div class="card">
+            <h2>Задания</h2>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <select id="myAssignmentBranch" class="form-control" style="min-width: 260px;">
+                    {% for b in assignments %}
+                        <option value="{{ b }}">{{ b }}</option>
+                    {% endfor %}
+                </select>
+                <select id="myCourse" class="form-control" style="width: 160px;">
+                    <option value="python">Python</option>
+                    <option value="cpp">C++</option>
+                </select>
+                <button class="btn btn-success" onclick="createMyEnvironment()">
+                    Открыть среду для задания
+                </button>
+                <button class="btn btn-info" onclick="runMyCheck()">
+                    Проверить
+                </button>
+                <button class="btn btn-primary" onclick="submitMyWork()">
+                    Отправить (git push)
+                </button>
+            </div>
+            <div id="assignmentResult" style="margin-top:10px; white-space:pre-wrap;"></div>
+            <div style="margin-top:10px; color:#666; font-size:12px;">
+                Проект клонируется в <code>/home/student/workspace/project</code>. Проверка и отправка выполняются внутри контейнера.
+            </div>
+        </div>
+        
+        <div class="status-card">
+            <h2>📊 Статус среды</h2>
+            
+            {% if env_status == "running" %}
+            <div class="status-running">
+                <div class="status-icon">✅</div>
+                <div class="status-content">
+                    <h3>Среда активна и готова к работе!</h3>
+                    <p>Ваша среда разработки запущена и доступна.</p>
+                    
+                    <div class="access-info">
+                        <h4>🔗 Доступ к среде:</h4>
+                        <div class="access-details">
+                            <p><strong>URL:</strong> 
+                                <a href="{{ web_url }}" target="_blank" class="web-link">
+                                    {{ web_url }}
+                                </a>
+                            </p>
+                            
+                            <div class="password-container">
+                                <h4>🔑 Пароль для входа:</h4>
+                                <div class="password-field">
+                                    <input type="password" 
+                                           id="passwordInput" 
+                                           class="password-input" 
+                                           value="{{ password }}" 
+                                           readonly>
+                                    <button onclick="togglePassword()" class="show-btn" id="showBtn">
+                                        👁️ Показать
+                                    </button>
+                                    <button onclick="copyPassword()" class="copy-btn">
+                                        📋 Копировать
+                                    </button>
+                                </div>
+                                <p style="font-size: 12px; color: #666; margin-top: 5px;">
+                                    Нажмите "Копировать", затем вставьте пароль в форму входа VS Code
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instructions-box">
+                        <h4>📝 Пошаговая инструкция:</h4>
+                        <ol>
+                            <li>Нажмите на ссылку URL выше (откроется новая вкладка)</li>
+                            <li>Нажмите кнопку "Копировать" рядом с паролем</li>
+                            <li>В новой вкладке с VS Code вставьте пароль в поле "Password"</li>
+                            <li>Нажмите "Submit" или Enter</li>
+                            <li>Готово! Вы в своей среде разработки</li>
+                        </ol>
+                    </div>
+                    
+                    <button class="btn btn-warning" onclick="stopMyEnvironment()">
+                        ⏸️ Остановить мою среду
+                    </button>
+                </div>
+            </div>
+            
+            {% elif env_status == "exited" %}
+            <div class="status-stopped">
+                <div class="status-icon">⏸️</div>
+                <div class="status-content">
+                    <h3>Среда остановлена</h3>
+                    <p>Ваша среда разработки в настоящее время не активна.</p>
+                    <p>Обратитесь к преподавателю для запуска среды.</p>
+                </div>
+            </div>
+            
+            {% else %}
+            <div class="status-not-created">
+                <div class="status-icon">❌</div>
+                <div class="status-content">
+                    <h3>Среда не создана</h3>
+                    <p>У вас еще нет персональной среды разработки.</p>
+                    <p>Обратитесь к преподавателю для создания среды.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="card">
+            <h2>ℹ️ Информация о среде</h2>
+            <ul class="info-list">
+                <li>✅ Изолированная среда — только вы имеете доступ</li>
+                <li>💾 Данные сохраняются между сессиями</li>
+                <li>⚡ Предустановлены: Python, Git, VS Code расширения</li>
+                <li>🔧 Полноценный VS Code в браузере</li>
+                <li>📁 Доступ к файловой системе внутри контейнера</li>
+                <li>🌐 Работа из любого браузера на любом устройстве</li>
+            </ul>
+            
+            {% if env_status == "running" %}
+            <div style="margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 8px;">
+                <h3>💡 Советы по использованию:</h3>
+                <ul>
+                    <li>Сохраняйте файлы в папке <code>/home/student/workspace</code></li>
+                    <li>Используйте терминал в VS Code для команд</li>
+                    <li>Для установки пакетов Python: <code>pip install имя_пакета</code></li>
+                    <li>Вы можете устанавливать дополнительные расширения VS Code</li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const button = document.getElementById('showBtn');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.textContent = '🙈 Скрыть';
+                button.style.background = '#e74c3c';
+            } else {
+                input.type = 'password';
+                button.textContent = '👁️ Показать';
+                button.style.background = '#2ecc71';
+            }
+        }
+        
+        function copyPassword() {
+            const input = document.getElementById('passwordInput');
+            input.select();
+            input.setSelectionRange(0, 99999); // Для мобильных устройств
+            
+            try {
+                navigator.clipboard.writeText(input.value).then(() => {
+                    alert('✅ Пароль скопирован в буфер обмена!');
+                });
+            } catch (err) {
+                // Fallback для старых браузеров
+                document.execCommand('copy');
+                alert('✅ Пароль скопирован в буфер обмена!');
+            }
+        }
+        
+        function stopMyEnvironment() {
+            if (confirm('Остановить вашу среду разработки? Вы сможете запустить ее снова через преподавателя.')) {
+                fetch(`/api/environments/{{ student_id }}/stop`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    location.reload();
+                });
+            }
+        }
+        
+        // Автоматически копировать пароль при нажатии на ссылку VS Code
+        document.querySelectorAll('.web-link').forEach(link => {
+            link.addEventListener('click', function() {
+                setTimeout(copyPassword, 500); // Копируем пароль через полсекунды
+            });
+        });
+
+        function createMyEnvironment() {
+            const branch = document.getElementById('myAssignmentBranch')?.value || 'main';
+            const course = document.getElementById('myCourse')?.value || 'python';
+            const formData = new FormData();
+            formData.append('assignment_branch', branch);
+            formData.append('course', course);
+            fetch('/api/my/environment/create', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    const el = document.getElementById('assignmentResult');
+                    el.textContent = data.success ? `OK\nURL: ${data.data.web_url}\nPassword: ${data.data.password}` : `ERROR\n${data.message}`;
+                    if (data.success) location.reload();
+                });
+        }
+
+        function runMyCheck() {
+            const el = document.getElementById('assignmentResult');
+            el.textContent = 'Проверка...';
+            fetch('/api/my/check', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    el.textContent = data.success ? `exit_code=${data.data.exit_code}\n${data.data.output}` : `ERROR\n${data.message}`;
+                });
+        }
+
+        function submitMyWork() {
+            const el = document.getElementById('assignmentResult');
+            el.textContent = 'Отправка...';
+            fetch('/api/my/submit', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    el.textContent = data.success ? `exit_code=${data.data.exit_code}\n${data.data.output}` : `ERROR\n${data.message}`;
+                });
+        }
+    </script>
+</body>
+</html>

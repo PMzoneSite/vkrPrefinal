@@ -1,0 +1,10 @@
+{
+  "workbench.colorTheme": "Default Dark+",
+  "editor.fontSize": 14,
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "terminal.integrated.shell.linux": "/bin/bash",
+  "files.autoSave": "afterDelay",
+  "security.workspace.trust.enabled": false
+}
+

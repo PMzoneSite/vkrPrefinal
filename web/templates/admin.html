@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">👨‍💼 Панель администратора</div>
+        <div class="nav-user">
+            Привет, {{ username }}! | 
+            <a href="/logout" class="logout-link">Выйти</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Управление средами разработки</h1>
+            <p>Создание и управление изолированными средами для студентов</p>
+        </div>
+        
+        <div class="card">
+            <h2>📝 Создать новую среду</h2>
+            <form id="createForm" class="form-inline">
+                <input type="text" id="studentId" placeholder="ID студента (например: student005)" required>
+                <select id="course">
+                    <option value="python">Python</option>
+                    <option value="web">Web Development</option>
+                    <option value="data">Data Science</option>
+                </select>
+                <select id="assignmentBranch">
+                    <option value="main">main</option>
+                    <option value="assignment-1">assignment-1</option>
+                    <option value="assignment-2">assignment-2</option>
+                </select>
+                <button type="submit" class="btn btn-success">Создать среду</button>
+            </form>
+            <div id="createResult" class="result"></div>
+        </div>
+        
+        <div class="card">
+            <h2>📋 Активные среды</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Студент</th>
+                            <th>Статус</th>
+                            <th>Порт</th>
+                            <th>Создана</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="environmentsTable">
+                        {% for env in environments %}
+                        <tr>
+                            <td>{{ env.student_id }}</td>
+                            <td>
+                                <span class="status-badge status-{{ env.status }}">
+                                    {{ env.status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if env.host_port != "N/A" %}
+                                <a href="http://localhost:{{ env.host_port }}" target="_blank">
+                                    localhost:{{ env.host_port }}
+                                </a>
+                                {% else %}
+                                {{ env.host_port }}
+                                {% endif %}
+                            </td>
+                            <td>{{ env.created }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    {% if env.status == "running" %}
+                                    <button class="btn btn-warning btn-sm" onclick="stopEnvironment('{{ env.student_id }}')">
+                                        Остановить
+                                    </button>
+                                    {% else %}
+                                    <button class="btn btn-success btn-sm" onclick="createEnvironment('{{ env.student_id }}')">
+                                        Запустить
+                                    </button>
+                                    {% endif %}
+                                    <button class="btn btn-danger btn-sm" onclick="removeEnvironment('{{ env.student_id }}')">
+                                        Удалить
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-info">
+                Всего сред: {{ environments|length }}
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>⚙️ Быстрые действия</h2>
+            <div class="quick-actions">
+                <button class="btn btn-info" onclick="refreshList()">🔄 Обновить список</button>
+                <button class="btn btn-secondary" onclick="cleanupEnvironments()">🧹 Очистить старые</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/script.js"></script>
+</body>
+</html>

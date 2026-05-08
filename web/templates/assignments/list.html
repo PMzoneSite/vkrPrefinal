@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Задания - Dev Environment Manager</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .assignments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .assignments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .assignment-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #eee;
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .assignment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .assignment-title {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .assignment-description {
+            color: #555;
+            line-height: 1.6;
+            flex-grow: 1;
+            margin-bottom: 20px;
+        }
+        
+        .assignment-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .badge-course {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .badge-difficulty-beginner {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .badge-difficulty-intermediate {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .badge-difficulty-advanced {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .badge-score {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .assignment-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .filter-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-select {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+        }
+        
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/" style="color: inherit; text-decoration: none;">←</a>
+            📝 Система заданий
+        </div>
+        <div class="nav-user">
+            {% if username %}
+                {{ username }} | 
+                <a href="/logout" class="logout-link">Выйти</a>
+            {% else %}
+                <a href="/login" class="logout-link">Войти</a>
+            {% endif %}
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="assignments-header">
+            <div>
+                <h1>📚 Задания</h1>
+                <p style="color: #666; margin-top: 5px;">
+                    Создание, управление и проверка учебных заданий
+                </p>
+            </div>
+            <div>
+                <a href="/assignments/create" class="btn btn-success btn-lg">
+                    + Создать задание
+                </a>
+                {% if role == 'teacher' or role == 'admin' %}
+                <a href="/teacher" class="btn btn-outline">
+                    ← К панели управления
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Быстрая статистика -->
+        <div class="stats-cards" id="statsSection">
+            <div class="stat-card">
+                <div class="stat-number" id="totalAssignments">0</div>
+                <div class="stat-label">Всего заданий</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeAssignments">0</div>
+                <div class="stat-label">Активных</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pythonAssignments">0</div>
+                <div class="stat-label">Python заданий</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalScore">0</div>
+                <div class="stat-label">Всего баллов</div>
+            </div>
+        </div>
+        
+        <!-- Фильтры -->
+        <div class="filter-bar">
+            <h3 style="margin-bottom: 15px;">🔍 Фильтры</h3>
+            <div class="filter-controls">
+                <select id="courseFilter" class="filter-select">
+                    <option value="all">Все курсы</option>
+                    <option value="python">Python</option>
+                    <option value="web">Web Development</option>
+                    <option value="data">Data Science</option>
+                    <option value="cpp">C++</option>
+                </select>
+                
+                <select id="difficultyFilter" class="filter-select">
+                    <option value="all">Все уровни</option>
+                    <option value="beginner">Начальный</option>
+                    <option value="intermediate">Средний</option>
+                    <option value="advanced">Продвинутый</option>
+                </select>
+                
+                <select id="sortFilter" class="filter-select">
+                    <option value="newest">Сначала новые</option>
+                    <option value="oldest">Сначала старые</option>
+                    <option value="difficulty">По сложности</option>
+                    <option value="score">По баллам</option>
+                </select>
+                
+                <input type="text" 
+                       id="searchInput" 
+                       placeholder="Поиск по названию..." 
+                       class="filter-select" 
+                       style="flex-grow: 1;">
+                
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    Применить
+                </button>
+                <button class="btn btn-outline" onclick="resetFilters()">
+                    Сбросить
+                </button>
+            </div>
+        </div>
+        
+        <!-- Список заданий -->
+        <div id="assignmentsContainer">
+            <div class="empty-state">
+                <div class="empty-state-icon">📚</div>
+                <h3>Заданий пока нет</h3>
+                <p style="max-width: 400px; margin: 15px auto;">
+                    Создайте первое задание для своих студентов. 
+                    Вы можете добавлять описания, тесты и шаблоны кода.
+                </p>
+                <a href="/assignments/create" class="btn btn-success btn-lg" style="margin-top: 20px;">
+                    + Создать первое задание
+                </a>
+            </div>
+        </div>
+        
+        <!-- Для студентов -->
+        {% if role == 'student' %}
+        <div class="card" style="margin-top: 40px;">
+            <h2>👨‍🎓 Для студентов</h2>
+            <p>Здесь вы можете:</p>
+            <ul style="margin: 15px 0 15px 20px;">
+                <li>Просматривать доступные задания</li>
+                <li>Открывать задание для выполнения</li>
+                <li>Отправлять свои решения</li>
+                <li>Просматривать результаты проверки</li>
+            </ul>
+            <p style="color: #666; font-style: italic;">
+                Вы вошли как: <strong>{{ username }}</strong>
+            </p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        let allAssignments = [];
+        
+        // Загрузить задания с сервера
+        async function loadAssignments() {
+            try {
+                const response = await fetch('/assignments/api/assignments');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allAssignments = data.data;
+                    updateStats();
+                    renderAssignments(allAssignments);
+                } else {
+                    document.getElementById('assignmentsContainer').innerHTML = 
+                        '<div class="empty-state"><p style="color: red;">Ошибка загрузки заданий</p></div>';
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                document.getElementById('assignmentsContainer').innerHTML = 
+                    '<div class="empty-state"><p style="color: red;">Ошибка подключения к серверу</p></div>';
+            }
+        }
+        
+        // Обновить статистику
+        function updateStats() {
+            document.getElementById('totalAssignments').textContent = allAssignments.length;
+            
+            const pythonCount = allAssignments.filter(a => a.course === 'python').length;
+            document.getElementById('pythonAssignments').textContent = pythonCount;
+            
+            const activeCount = allAssignments.filter(a => !a.due_date || new Date(a.due_date) > new Date()).length;
+            document.getElementById('activeAssignments').textContent = activeCount;
+            
+            const totalScore = allAssignments.reduce((sum, a) => sum + a.max_score, 0);
+            document.getElementById('totalScore').textContent = totalScore;
+        }
+        
+        // Отобразить задания
+        function renderAssignments(assignments) {
+            const container = document.getElementById('assignmentsContainer');
+            
+            if (assignments.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <h3>Задания не найдены</h3>
+                        <p>Попробуйте изменить параметры фильтрации</p>
+                        <button class="btn btn-outline" onclick="resetFilters()" style="margin-top: 20px;">
+                            Сбросить фильтры
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="assignments-grid">';
+            
+            assignments.forEach(assignment => {
+                // Определяем класс сложности
+                let difficultyClass = 'badge-difficulty-beginner';
+                if (assignment.difficulty === 'intermediate') difficultyClass = 'badge-difficulty-intermediate';
+                if (assignment.difficulty === 'advanced') difficultyClass = 'badge-difficulty-advanced';
+                
+                // Обрезаем описание
+                const shortDesc = assignment.description.length > 150 
+                    ? assignment.description.substring(0, 150) + '...' 
+                    : assignment.description;
+                
+                html += `
+                    <div class="assignment-card" data-course="${assignment.course}" data-difficulty="${assignment.difficulty}">
+                        <h3 class="assignment-title">${assignment.title}</h3>
+                        
+                        <div class="assignment-description">
+                            ${shortDesc}
+                        </div>
+                        
+                        <div class="assignment-meta">
+                            <span class="badge badge-course">${assignment.course}</span>
+                            <span class="badge ${difficultyClass}">${assignment.difficulty}</span>
+                            <span class="badge badge-score">${assignment.max_score} баллов</span>
+                            ${assignment.due_date ? 
+                                `<span class="badge" style="background: #fff3cd; color: #856404;">
+                                    📅 ${new Date(assignment.due_date).toLocaleDateString()}
+                                </span>` : ''
+                            }
+                        </div>
+                        
+                        <div class="assignment-actions">
+                            <a href="/assignments/${assignment.id}" class="btn btn-primary">
+                                {% if role == 'student' %}
+                                    Выполнить
+                                {% else %}
+                                    Открыть
+                                {% endif %}
+                            </a>
+                            
+                            {% if role == 'teacher' or role == 'admin' %}
+                            <button class="btn btn-info" onclick="viewSubmissions('${assignment.id}')">
+                                Решения
+                            </button>
+                            <button class="btn btn-outline" onclick="editAssignment('${assignment.id}')">
+                                Редактировать
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // Применить фильтры
+        function applyFilters() {
+            let filtered = [...allAssignments];
+            
+            const course = document.getElementById('courseFilter').value;
+            const difficulty = document.getElementById('difficultyFilter').value;
+            const sort = document.getElementById('sortFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            
+            // Фильтрация по курсу
+            if (course !== 'all') {
+                filtered = filtered.filter(a => a.course === course);
+            }
+            
+            // Фильтрация по сложности
+            if (difficulty !== 'all') {
+                filtered = filtered.filter(a => a.difficulty === difficulty);
+            }
+            
+            // Поиск по названию
+            if (search) {
+                filtered = filtered.filter(a => 
+                    a.title.toLowerCase().includes(search) || 
+                    a.description.toLowerCase().includes(search)
+                );
+            }
+            
+            // Сортировка
+            if (sort === 'newest') {
+                filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            } else if (sort === 'oldest') {
+                filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            } else if (sort === 'difficulty') {
+                const order = { 'beginner': 1, 'intermediate': 2, 'advanced': 3 };
+                filtered.sort((a, b) => order[a.difficulty] - order[b.difficulty]);
+            } else if (sort === 'score') {
+                filtered.sort((a, b) => b.max_score - a.max_score);
+            }
+            
+            renderAssignments(filtered);
+        }
+        
+        // Сбросить фильтры
+        function resetFilters() {
+            document.getElementById('courseFilter').value = 'all';
+            document.getElementById('difficultyFilter').value = 'all';
+            document.getElementById('sortFilter').value = 'newest';
+            document.getElementById('searchInput').value = '';
+            renderAssignments(allAssignments);
+        }
+        
+        // Просмотр решений
+        function viewSubmissions(assignmentId) {
+            window.location.href = `/assignments/${assignmentId}/submissions`;
+        }
+        
+        // Редактирование задания
+        function editAssignment(assignmentId) {
+            window.location.href = `/assignments/${assignmentId}/edit`;
+        }
+        
+        // Поиск при вводе
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        
+        // Загрузить задания при загрузке страницы
+        document.addEventListener('DOMContentLoaded', loadAssignments);
+    </script>
+</body>
+</html>

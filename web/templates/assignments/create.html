@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Создание задания</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        textarea { min-height: 100px; }
+        .btn { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .btn:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Создание нового задания</h1>
+        <a href="/assignments" style="margin-bottom: 20px; display: inline-block;">← Назад к списку</a>
+        
+        <form id="createForm" style="margin-top: 30px;">
+            <div class="form-group">
+                <label>Название задания:</label>
+                <input type="text" id="title" required placeholder="Например: Калькулятор на Python">
+            </div>
+            
+            <div class="form-group">
+                <label>Описание:</label>
+                <textarea id="description" required placeholder="Подробное описание задания..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Курс:</label>
+                <select id="course">
+                    <option value="python">Python</option>
+                    <option value="web">Web Development</option>
+                    <option value="data">Data Science</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Сложность:</label>
+                <select id="difficulty">
+                    <option value="beginner">Начальный</option>
+                    <option value="intermediate">Средний</option>
+                    <option value="advanced">Продвинутый</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Максимальный балл:</label>
+                <input type="number" id="max_score" value="100" min="1" max="1000">
+            </div>
+            
+            <div class="form-group">
+                <label>Срок сдачи (необязательно):</label>
+                <input type="datetime-local" id="due_date">
+            </div>
+            
+            <button type="submit" class="btn">Создать задание</button>
+            <div id="result" style="margin-top: 20px;"></div>
+        </form>
+    </div>
+    
+    <script>
+        document.getElementById('createForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value);
+            formData.append('description', document.getElementById('description').value);
+            formData.append('course', document.getElementById('course').value);
+            formData.append('difficulty', document.getElementById('difficulty').value);
+            formData.append('max_score', document.getElementById('max_score').value);
+            
+            const dueDate = document.getElementById('due_date').value;
+            if (dueDate) {
+                formData.append('due_date', dueDate);
+            }
+            
+            try {
+                const response = await fetch('/assignments/api/assignments/create', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('result').innerHTML = 
+                        `<div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 5px;">
+                            <h3>✅ Задание создано!</h3>
+                            <p>ID: ${result.data.id}</p>
+                            <p>Перенаправление через 3 секунды...</p>
+                        </div>`;
+                    
+                    setTimeout(() => {
+                        window.location.href = `/assignments/${result.data.id}`;
+                    }, 3000);
+                } else {
+                    document.getElementById('result').innerHTML = 
+                        `<div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px;">
+                            ❌ Ошибка: ${result.message}
+                        </div>`;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    `<div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px;">
+                        ❌ Ошибка сети: ${error.message}
+                    </div>`;
+            }
+        });
+    </script>
+</body>
+</html>

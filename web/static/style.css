@@ -1,0 +1,598 @@
+/* Основные стили */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+/* Навигация */
+.navbar {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.nav-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.nav-user {
+    color: #666;
+}
+
+.logout-link {
+    color: #e74c3c;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+.logout-link:hover {
+    text-decoration: underline;
+}
+
+/* Контейнеры */
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* Карточки */
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* Формы */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.form-inline {
+    display: flex;
+    gap: 10px;
+}
+
+.form-inline input {
+    flex: 1;
+}
+
+.form-inline select {
+    width: 200px;
+}
+
+/* Кнопки */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-success {
+    background: #2ecc71;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #27ae60;
+}
+
+.btn-warning {
+    background: #f39c12;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #d35400;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+/* Таблицы */
+.table-container {
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: #f8f9fa;
+}
+
+th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* Статусные бейджи */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-running {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-exited {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* Страница входа */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.login-box {
+    background: white;
+    padding: 3rem;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    max-width: 400px;
+    width: 100%;
+}
+
+.login-box h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.demo-credentials {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 5px;
+    font-size: 0.875rem;
+}
+
+.demo-credentials h3 {
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.demo-credentials ul {
+    list-style: none;
+    color: #666;
+}
+
+.demo-credentials li {
+    margin-bottom: 0.25rem;
+    padding-left: 1rem;
+}
+
+/* Статус карточки студента */
+.status-card {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.status-running, .status-stopped, .status-not-created {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.status-icon {
+    font-size: 3rem;
+    flex-shrink: 0;
+}
+
+.status-content {
+    flex: 1;
+}
+
+.status-content h3 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.access-info {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+}
+
+.access-details p {
+    margin-bottom: 0.5rem;
+}
+
+.access-details a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.access-details a:hover {
+    text-decoration: underline;
+}
+
+.instructions {
+    margin: 1.5rem 0;
+}
+
+.instructions ol {
+    margin-left: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.instructions li {
+    margin-bottom: 0.5rem;
+}
+
+.info-list {
+    list-style: none;
+}
+
+.info-list li {
+    padding: 0.5rem 0;
+    padding-left: 2rem;
+    position: relative;
+}
+
+.info-list li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #2ecc71;
+    font-weight: bold;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .form-inline {
+        flex-direction: column;
+    }
+    
+    .form-inline select {
+        width: 100%;
+    }
+    
+    .status-running, .status-stopped, .status-not-created {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .status-icon {
+        text-align: center;
+    }
+}
+/* Добавьте эти стили в конец файла */
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid #3498db;
+    color: #3498db;
+}
+
+.btn-outline:hover {
+    background: #3498db;
+    color: white;
+}
+
+.btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+
+.btn-outline.btn-lg {
+    padding: calc(1rem - 2px) calc(2rem - 2px);
+}
+
+/* Для главной страницы */
+.hero {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.feature-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.cta-buttons {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* Для футера */
+footer {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    margin-top: 2rem;
+}
+
+/* Адаптивность для главной */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+    
+    .hero p {
+        font-size: 1rem;
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+    }
+    
+    .btn-lg {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+}
+/* Добавить в конец файла */
+
+.password-container {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.password-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.password-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 16px;
+}
+
+.copy-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.copy-btn:hover {
+    background: #2980b9;
+}
+
+.show-btn {
+    background: #2ecc71;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.show-btn:hover {
+    background: #27ae60;
+}
+
+.instructions-box {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.code {
+    background: #f1f1f1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+/* Для совместимости с мобильными устройствами */
+@media (max-width: 768px) {
+    .password-field {
+        flex-direction: column;
+    }
+    
+    .password-input, .copy-btn, .show-btn {
+        width: 100%;
+    }
+}
+/* Добавить в конец файла */
+
+/* Модальные окна */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 500px;
+    max-width: 90%;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #333;
+}
+
+/* Уведомления */
+.alert {
+    padding: 15px;
+    border-radius: 5px;
+    margin: 15px 0;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+/* Формы в модальных окнах */
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Адаптивность модальных окон */
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 10% auto;
+        width: 95%;
+        padding: 20px;
+    }
+    
+    .student-actions {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .student-actions .btn {
+        width: 100%;
+    }
+}

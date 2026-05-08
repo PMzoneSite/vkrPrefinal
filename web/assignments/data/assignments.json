@@ -1,0 +1,17 @@
+{
+  "python-6281a6a6": {
+    "id": "python-6281a6a6",
+    "title": "Саундтрек к Жан Поль Сартр",
+    "description": "sfdfs",
+    "course": "python",
+    "difficulty": "beginner",
+    "max_score": 100,
+    "due_date": null,
+    "created_at": "2026-01-17T00:40:44.365013",
+    "updated_at": "2026-01-17T00:40:44.365037",
+    "template_files": [],
+    "test_files": [],
+    "instructions": "",
+    "tags": []
+  }
+}

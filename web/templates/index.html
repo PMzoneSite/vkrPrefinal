@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev Environment Manager</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .hero {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .cta-buttons {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🎓 Dev Environment Manager</div>
+        <div class="nav-user">
+            <a href="/login" class="btn btn-outline">Войти</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="hero">
+            <h1>🚀 Изолированные среды разработки</h1>
+            <p>Индивидуальные, предварительно настроенные среды разработки в контейнерах для образовательных целей</p>
+            <div class="cta-buttons">
+                <a href="/login" class="btn btn-primary btn-lg">Войти в систему</a>
+                <a href="#features" class="btn btn-outline btn-lg">Узнать больше</a>
+            </div>
+        </div>
+        
+        <div id="features" class="card">
+            <h2>🌟 Возможности системы</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">🐳</div>
+                    <h3>Контейнеризация</h3>
+                    <p>Каждый студент получает изолированный Docker-контейнер с индивидуальной средой</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">💻</div>
+                    <h3>VS Code в браузере</h3>
+                    <p>Полноценный VS Code доступный через браузер. Никакой установки не требуется</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Безопасность</h3>
+                    <p>Полная изоляция сред, ограничение ресурсов, индивидуальные доступы</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Быстрый старт</h3>
+                    <p>Предустановленные Python, инструменты, библиотеки. Начинайте работать сразу</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>👥 Для кого эта система</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <h3>👨‍🎓 Студенты</h3>
+                    <ul style="text-align: left;">
+                        <li>Готовая среда за 1 минуту</li>
+                        <li>Работа из любого браузера</li>
+                        <li>Сохранение прогресса</li>
+                        <li>Нет проблем с настройкой</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>👨‍🏫 Преподаватели</h3>
+                    <ul style="text-align: left;">
+                        <li>Единая среда для всех</li>
+                        <li>Контроль над ресурсами</li>
+                        <li>Быстрая проверка работ</li>
+                        <li>Управление через веб-интерфейс</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🏫 Администраторы</h3>
+                    <ul style="text-align: left;">
+                        <li>Централизованное управление</li>
+                        <li>Мониторинг использования</li>
+                        <li>Автоматическая очистка</li>
+                        <li>Масштабируемость</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="text-align: center;">
+            <h2>🚀 Начните прямо сейчас</h2>
+            <p style="margin: 1rem 0; font-size: 1.1rem;">Используйте тестовые учетные данные для демонстрации</p>
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; display: inline-block; text-align: left;">
+                <p><strong>Администратор:</strong> admin / admin123</p>
+                <p><strong>Преподаватель:</strong> teacher / teacher123</p>
+                <p><strong>Студент:</strong> student001 / student123</p>
+            </div>
+            <div style="margin-top: 2rem;">
+                <a href="/login" class="btn btn-primary btn-lg">Перейти к входу →</a>
+            </div>
+        </div>
+    </div>
+    
+    <footer style="text-align: center; padding: 2rem; color: #666; margin-top: 2rem;">
+        <p>Dev Environment Manager MVP • Docker + FastAPI • 2024</p>
+    </footer>
+</body>
+</html>
