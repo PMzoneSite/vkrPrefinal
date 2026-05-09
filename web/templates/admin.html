@@ -31,9 +31,9 @@
                     <option value="data">Data Science</option>
                 </select>
                 <select id="assignmentBranch">
-                    <option value="main">main</option>
-                    <option value="assignment-1">assignment-1</option>
-                    <option value="assignment-2">assignment-2</option>
+                    {% for b in assignments %}
+                        <option value="{{ b }}">{{ b }}</option>
+                    {% endfor %}
                 </select>
                 <button type="submit" class="btn btn-success">Создать среду</button>
             </form>

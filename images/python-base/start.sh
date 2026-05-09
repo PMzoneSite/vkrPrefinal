@@ -3,6 +3,9 @@
 # Устанавливаем пароль для code-server
 export PASSWORD="${CODE_PASSWORD:-student123}"
 
+# Ensure user-installed Python CLIs (pip --user) are available (pytest, pip, etc.)
+export PATH="$HOME/.local/bin:$PATH"
+
 # Запускаем SSH сервер если установлен
 if command -v sshd &> /dev/null; then
     sudo service ssh start
@@ -15,6 +18,14 @@ if [ ! -f "/home/student/workspace/.project-setup" ]; then
 fi
 
 PROJECT_DIR="${PROJECT_DIR:-/home/student/workspace/project}"
+
+# If assignment selection was saved into the persistent volume, load it.
+if [ -f "/home/student/workspace/.assignment.env" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    . "/home/student/workspace/.assignment.env" || true
+    set +a
+fi
 normalize_git_url() {
     local u="$1"
     u="${u//localhost/host.docker.internal}"
@@ -34,6 +45,14 @@ if [ -n "${GIT_REPO_URL:-}" ]; then
             git clone --single-branch --branch "$GIT_BRANCH" "$GIT_REPO_URL" "$PROJECT_DIR" || true
         else
             git clone "$GIT_REPO_URL" "$PROJECT_DIR" || true
+        fi
+    else
+        # Repo exists: update and switch to requested branch
+        git -C "$PROJECT_DIR" remote set-url origin "$GIT_REPO_URL" 2>/dev/null || true
+        git -C "$PROJECT_DIR" fetch origin 2>/dev/null || true
+        if [ -n "${GIT_BRANCH:-}" ]; then
+            git -C "$PROJECT_DIR" checkout -B "$GIT_BRANCH" "origin/$GIT_BRANCH" 2>/dev/null || \
+              git -C "$PROJECT_DIR" checkout "$GIT_BRANCH" 2>/dev/null || true
         fi
     fi
 

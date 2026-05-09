@@ -322,6 +322,8 @@
             const formData = new FormData();
             formData.append('student_id', studentId);
             formData.append('course', course);
+            const assignmentBranch = document.getElementById('assignmentBranch')?.value;
+            if (assignmentBranch) formData.append('assignment_branch', assignmentBranch);
             
             fetch('/api/environments/create', {
                 method: 'POST',
@@ -424,6 +426,8 @@
             const formData = new FormData();
             formData.append('student_id', studentId);
             formData.append('course', course);
+            const assignmentBranch = document.getElementById('assignmentBranch')?.value;
+            if (assignmentBranch) formData.append('assignment_branch', assignmentBranch);
             
             fetch('/api/environments/create', {
                 method: 'POST',

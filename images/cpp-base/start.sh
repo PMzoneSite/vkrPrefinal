@@ -2,6 +2,9 @@
 
 export PASSWORD="${CODE_PASSWORD:-student123}"
 
+# Ensure user-installed Python CLIs (pip --user) are available (pytest, pip, etc.)
+export PATH="$HOME/.local/bin:$PATH"
+
 if command -v sshd &> /dev/null; then
     sudo service ssh start
 fi
@@ -57,4 +60,3 @@ code-server \
     --bind-addr 0.0.0.0:8080 \
     --disable-telemetry \
     /home/student/workspace
-

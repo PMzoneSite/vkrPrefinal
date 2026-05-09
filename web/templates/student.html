@@ -86,16 +86,38 @@
                 <button class="btn btn-success" onclick="createMyEnvironment()">
                     Открыть среду для задания
                 </button>
+                <button class="btn btn-primary" onclick="openIde()" id="openIdeBtn" {% if not web_url %}disabled{% endif %}>
+                    Открыть VS Code
+                </button>
                 <button class="btn btn-info" onclick="runMyCheck()">
                     Проверить
+                </button>
+                <button class="btn btn-outline" onclick="runMyProgram()">
+                    Запустить программу
                 </button>
                 <button class="btn btn-primary" onclick="submitMyWork()">
                     Отправить (git push)
                 </button>
             </div>
-            <div id="assignmentResult" style="margin-top:10px; white-space:pre-wrap;"></div>
+            <div id="assignmentResult" style="margin-top:10px;"></div>
+            <pre id="assignmentLog" style="margin-top:10px; white-space:pre-wrap;"></pre>
             <div style="margin-top:10px; color:#666; font-size:12px;">
                 Проект клонируется в <code>/home/student/workspace/project</code>. Проверка и отправка выполняются внутри контейнера.
+            </div>
+
+            <div id="runModal" class="modal" style="display:none;">
+                <div class="modal-content">
+                    <span class="close" onclick="hideRunModal()">&times;</span>
+                    <h3>Запуск программы</h3>
+                    <p style="color:#666; margin:10px 0;">
+                        Введите входные данные (stdin). Каждое значение — с новой строки.
+                    </p>
+                    <textarea id="stdinInput" class="form-control" rows="8" style="font-family: monospace;"></textarea>
+                    <div style="display:flex; gap:10px; margin-top:15px;">
+                        <button class="btn btn-success" onclick="submitRun()">Запустить</button>
+                        <button class="btn btn-secondary" onclick="hideRunModal()">Отмена</button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -264,31 +286,141 @@
             formData.append('course', course);
             fetch('/api/my/environment/create', { method: 'POST', body: formData })
                 .then(r => r.json())
-                .then(data => {
-                    const el = document.getElementById('assignmentResult');
-                    el.textContent = data.success ? `OK\nURL: ${data.data.web_url}\nPassword: ${data.data.password}` : `ERROR\n${data.message}`;
-                    if (data.success) location.reload();
+                .then(async (data) => {
+                    const resultEl = document.getElementById('assignmentResult');
+                    const logEl = document.getElementById('assignmentLog');
+                    if (!data.success) {
+                        resultEl.innerHTML = `<div class="alert alert-danger">❌ ${escapeHtml(data.message || 'Unknown error')}</div>`;
+                        return;
+                    }
+
+                    const url = data?.data?.web_url;
+                    const password = data?.data?.password;
+                    resultEl.innerHTML = `<div class="alert alert-success">✅ Среда готова. Открываю VS Code в новой вкладке...</div>`;
+                    logEl.textContent = `URL: ${url}\nPassword: ${password}`;
+
+                    // Обновляем кнопку "Открыть VS Code" без перезагрузки страницы
+                    const btn = document.getElementById('openIdeBtn');
+                    if (btn) btn.disabled = !url;
+
+                    // Пытаемся скопировать пароль, чтобы студенту не приходилось искать
+                    if (password) {
+                        try { await navigator.clipboard.writeText(password); } catch (e) {}
+                    }
+
+                    if (url) {
+                        window.open(url, '_blank', 'noopener');
+                    }
                 });
         }
 
         function runMyCheck() {
-            const el = document.getElementById('assignmentResult');
-            el.textContent = 'Проверка...';
+            const resultEl = document.getElementById('assignmentResult');
+            const logEl = document.getElementById('assignmentLog');
+            resultEl.innerHTML = '<div class="alert" style="background:#f8f9fa;border:1px solid #eee;color:#333;">⏳ Проверка...</div>';
+            logEl.textContent = '';
             fetch('/api/my/check', { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
-                    el.textContent = data.success ? `exit_code=${data.data.exit_code}\n${data.data.output}` : `ERROR\n${data.message}`;
+                    if (!data.success) {
+                        resultEl.innerHTML = `<div class="alert alert-danger">❌ ${escapeHtml(data.message || 'Unknown error')}</div>`;
+                        return;
+                    }
+                    const exitCode = data?.data?.exit_code;
+                    const output = data?.data?.output || '';
+                    const ok = String(exitCode) === '0';
+                    resultEl.innerHTML = ok
+                        ? '<div class="alert alert-success">✅ Проверка пройдена</div>'
+                        : `<div class="alert alert-danger">❌ Проверка завершилась с ошибкой (exit_code=${escapeHtml(String(exitCode))})</div>`;
+                    logEl.textContent = output;
+                });
+        }
+
+        function runMyProgram() {
+            showRunModal();
+        }
+
+        function showRunModal() {
+            const modal = document.getElementById('runModal');
+            const ta = document.getElementById('stdinInput');
+            if (modal) modal.style.display = 'block';
+            if (ta) setTimeout(() => ta.focus(), 0);
+        }
+
+        function hideRunModal() {
+            const modal = document.getElementById('runModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function submitRun() {
+            hideRunModal();
+            const resultEl = document.getElementById('assignmentResult');
+            const logEl = document.getElementById('assignmentLog');
+            const ta = document.getElementById('stdinInput');
+            const stdinRaw = ta ? ta.value : '';
+            resultEl.innerHTML = '<div class="alert" style="background:#f8f9fa;border:1px solid #eee;color:#333;">⏳ Запуск...</div>';
+            logEl.textContent = '';
+            const formData = new FormData();
+            if (stdinRaw) {
+                const stdin = stdinRaw.endsWith('\n') ? stdinRaw : (stdinRaw + '\n');
+                formData.append('input_data', stdin);
+            }
+            fetch('/api/my/run', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        resultEl.innerHTML = `<div class="alert alert-danger">❌ ${escapeHtml(data.message || 'Unknown error')}</div>`;
+                        return;
+                    }
+                    const exitCode = data?.data?.exit_code;
+                    const output = data?.data?.output || '';
+                    const ok = String(exitCode) === '0';
+                    resultEl.innerHTML = ok
+                        ? '<div class="alert alert-success">✅ Программа завершилась успешно</div>'
+                        : `<div class="alert alert-danger">❌ Ошибка запуска (exit_code=${escapeHtml(String(exitCode))})</div>`;
+                    logEl.textContent = output;
                 });
         }
 
         function submitMyWork() {
-            const el = document.getElementById('assignmentResult');
-            el.textContent = 'Отправка...';
+            const resultEl = document.getElementById('assignmentResult');
+            const logEl = document.getElementById('assignmentLog');
+            resultEl.innerHTML = '<div class="alert" style="background:#f8f9fa;border:1px solid #eee;color:#333;">⏳ Отправка...</div>';
+            logEl.textContent = '';
             fetch('/api/my/submit', { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
-                    el.textContent = data.success ? `exit_code=${data.data.exit_code}\n${data.data.output}` : `ERROR\n${data.message}`;
+                    if (!data.success) {
+                        resultEl.innerHTML = `<div class="alert alert-danger">❌ ${escapeHtml(data.message || 'Unknown error')}</div>`;
+                        return;
+                    }
+                    const exitCode = data?.data?.exit_code;
+                    const output = data?.data?.output || '';
+                    const ok = String(exitCode) === '0';
+                    resultEl.innerHTML = ok
+                        ? '<div class="alert alert-success">✅ Отправлено (git push)</div>'
+                        : `<div class="alert alert-danger">❌ Ошибка отправки (exit_code=${escapeHtml(String(exitCode))})</div>`;
+                    logEl.textContent = output;
                 });
+        }
+
+        function openIde() {
+            const url = {{ (web_url|tojson) if web_url else 'null' }};
+            if (!url) {
+                const resultEl = document.getElementById('assignmentResult');
+                resultEl.innerHTML = '<div class="alert alert-danger">❌ Среда еще не создана. Нажмите “Открыть среду для задания”.</div>';
+                return;
+            }
+            window.open(url, '_blank', 'noopener');
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
         }
     </script>
 </body>

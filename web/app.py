@@ -9,10 +9,14 @@ import subprocess
 import json
 import tempfile
 import shutil
+import base64
+import re
 from urllib import request as urlrequest
 from urllib.error import HTTPError
 from pathlib import Path
 from dotenv import load_dotenv
+
+from assignments.database import db as assignments_db
 
 
 # Получаем абсолютный путь к текущей папке web
@@ -198,6 +202,18 @@ def list_assignment_branches(repo_url: str) -> list[str]:
     except Exception:
         return []
 
+
+def assignments_template_repo_url_with_auth() -> str:
+    """Return ASSIGNMENTS_TEMPLATE_REPO_URL with embedded HTTP basic auth if available."""
+    repo_url = (os.getenv("ASSIGNMENTS_TEMPLATE_REPO_URL", "") or "").strip()
+    if not repo_url:
+        return ""
+    try:
+        user, token = resolve_git_http_credentials()
+        return _inject_basic_auth(repo_url, user, token)
+    except Exception:
+        return repo_url
+
 def _gitea_api_request(method: str, path: str, data: dict | None = None) -> tuple[int, dict | str]:
     base = os.getenv("GITEA_URL", "http://localhost:3000").rstrip("/")
     token = os.getenv("GITEA_ADMIN_TOKEN", "").strip()
@@ -351,6 +367,7 @@ async def admin_dashboard(request: Request):
             "username": user["username"],
             "role": user["role"],
             "student_users": student_users,
+            "assignments": list_assignment_branches(assignments_template_repo_url_with_auth()),
         },
     )
 
@@ -381,6 +398,7 @@ async def teacher_dashboard(request: Request):
             "username": user["username"],
             "role": user["role"],
             "student_users": student_users,  # Важно передать список студентов!
+            "assignments": list_assignment_branches(assignments_template_repo_url_with_auth()),
         },
     )
 @app.get("/student/{student_id}", response_class=HTMLResponse)
@@ -437,7 +455,10 @@ async def student_dashboard(request: Request, student_id: str):
             "container_id": container_id,
             "username": user["username"],
             "role": user["role"],
-            "assignments": list_assignment_branches(os.getenv("ASSIGNMENTS_TEMPLATE_REPO_URL", "")),
+            "assignments": (
+                list_assignment_branches(assignments_template_repo_url_with_auth())
+                or [a.id for a in assignments_db.get_all_assignments()]
+            ),
         },
     )
 
@@ -446,8 +467,10 @@ async def assignments_api(request: Request):
     user = check_auth(request, ["admin", "teacher", "student"])
     if not user:
         raise HTTPException(status_code=401, detail="Требуется авторизация")
-    repo_url = os.getenv("ASSIGNMENTS_TEMPLATE_REPO_URL", "")
-    return {"success": True, "data": {"repo_url": repo_url, "branches": list_assignment_branches(repo_url)}}
+    repo_url = (os.getenv("ASSIGNMENTS_TEMPLATE_REPO_URL", "") or "").strip()
+    repo_url_auth = assignments_template_repo_url_with_auth()
+    branches = list_assignment_branches(repo_url_auth)
+    return {"success": True, "data": {"repo_url": repo_url, "branches": branches}}
 
 @app.post("/api/my/environment/create")
 async def create_my_environment(
@@ -487,6 +510,16 @@ async def create_my_environment(
             git_branch=effective_branch,
             git_push_url=git_push_url,
         )
+        # Persist current assignment selection so container start.sh can switch branches on restart
+        try:
+            docker_manager.set_assignment_context(
+                student_id,
+                git_repo_url=git_repo_url,
+                git_branch=effective_branch,
+                git_push_url=git_push_url,
+            )
+        except Exception:
+            pass
         return {"success": True, "message": "Среда готова", "data": result}
     except Exception as e:
         return {"success": False, "message": f"Ошибка: {e}"}
@@ -502,7 +535,11 @@ async def my_check(request: Request):
     try:
         r = docker_manager.exec_in_environment(
             student_id,
-            'if [ -f "./check.sh" ]; then chmod +x ./check.sh; ./check.sh; elif command -v pytest >/dev/null 2>&1; then pytest -q; else python3 -m pip -q install pytest >/dev/null && pytest -q; fi',
+            'run_pytest(){ pytest -q; rc=$?; if [ "$rc" = "5" ]; then echo "[warn] pytest: no tests collected"; return 0; fi; return $rc; }; '
+            'if [ -f "./check.sh" ]; then chmod +x ./check.sh; ./check.sh; rc=$?; '
+            'if [ "$rc" = "5" ]; then echo "[warn] check.sh exited with 5 (possibly no tests)"; exit 0; fi; exit $rc; '
+            'elif command -v pytest >/dev/null 2>&1; then run_pytest; '
+            'else python3 -m pip -q install pytest >/dev/null && run_pytest; fi',
         )
         return {"success": True, "data": r}
     except Exception as e:
@@ -521,6 +558,49 @@ async def my_submit(request: Request):
             student_id,
             'git add -A && (git commit -m "submit" || true) && git push origin HEAD',
         )
+        return {"success": True, "data": r}
+    except Exception as e:
+        return {"success": False, "message": f"Ошибка: {e}"}
+
+
+@app.post("/api/my/run")
+async def my_run(
+    request: Request,
+    entrypoint: str = Form(""),
+    input_data: str = Form(""),
+):
+    user = check_auth(request, ["student"])
+    if not user:
+        raise HTTPException(status_code=401, detail="Требуется авторизация")
+    if not docker_manager:
+        return {"success": False, "message": "Docker менеджер не инициализирован"}
+    student_id = user["username"]
+
+    # entrypoint is optional. If empty, we try: ./run.sh, then main.py, then single *.py file.
+    ep = (entrypoint or "").strip()
+    if ep:
+        if not re.fullmatch(r"[A-Za-z0-9_./-]+\.py", ep):
+            return {"success": False, "message": "Некорректный entrypoint. Ожидается путь к .py файлу (например: main.py)"}
+        run_cmd = f"python3 {ep}"
+    else:
+        run_cmd = (
+            'if [ -f "./run.sh" ]; then chmod +x ./run.sh; ./run.sh; '
+            'elif [ -f "./main.py" ]; then python3 ./main.py; '
+            'else '
+            'f=$(ls -1 *.py 2>/dev/null | head -n 1); '
+            'if [ -n "$f" ] && [ "$(ls -1 *.py 2>/dev/null | wc -l)" = "1" ]; then python3 "$f"; '
+            'else echo "[error] Не найдено, что запускать. Добавьте run.sh или main.py (или оставьте в корне ровно один .py файл)."; exit 2; fi; '
+            'fi'
+        )
+
+    cmd = run_cmd
+    inp = input_data or ""
+    if inp:
+        b64 = base64.b64encode(inp.encode("utf-8")).decode("ascii")
+        cmd = f"input_b64='{b64}'; printf '%s' \"$input_b64\" | base64 -d | ({run_cmd})"
+
+    try:
+        r = docker_manager.exec_in_environment(student_id, cmd)
         return {"success": True, "data": r}
     except Exception as e:
         return {"success": False, "message": f"Ошибка: {e}"}

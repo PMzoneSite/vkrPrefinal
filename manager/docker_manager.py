@@ -408,6 +408,43 @@ class DockerManager:
         out = r.output.decode("utf-8", errors="replace") if isinstance(r.output, (bytes, bytearray)) else str(r.output)
         exit_code = int(r.exit_code) if hasattr(r, "exit_code") and r.exit_code is not None else 0
         return {"exit_code": exit_code, "output": out}
+
+    def set_assignment_context(
+        self,
+        student_id: str,
+        git_repo_url: str | None = None,
+        git_branch: str | None = None,
+        git_push_url: str | None = None,
+    ) -> Dict:
+        """Persist assignment selection in the student's volume.
+
+        This supports the workflow: one repo per student, different branches per assignment.
+        start.sh inside the container reads /home/student/workspace/.assignment.env on startup.
+        """
+        container_name = f"{config.CONTAINER_PREFIX}{student_id}"
+        container = self.client.containers.get(container_name)
+
+        def _sh_escape(v: str) -> str:
+            return v.replace("\\", "\\\\").replace("\"", "\\\"")
+
+        lines = []
+        if git_repo_url is not None:
+            lines.append(f'GIT_REPO_URL="{_sh_escape(str(git_repo_url))}"')
+        if git_branch is not None:
+            lines.append(f'GIT_BRANCH="{_sh_escape(str(git_branch))}"')
+        if git_push_url is not None:
+            lines.append(f'GIT_PUSH_URL="{_sh_escape(str(git_push_url))}"')
+
+        content = "\n".join(lines) + "\n"
+        cmd = [
+            "bash",
+            "-lc",
+            "cat > /home/student/workspace/.assignment.env <<'EOF'\n" + content + "EOF\n",
+        ]
+        r = container.exec_run(cmd, stdout=True, stderr=True)
+        out = r.output.decode("utf-8", errors="replace") if isinstance(r.output, (bytes, bytearray)) else str(r.output)
+        exit_code = int(r.exit_code) if hasattr(r, "exit_code") and r.exit_code is not None else 0
+        return {"exit_code": exit_code, "output": out}
     
     def cleanup_old_environments(self, older_than_hours: int = 24) -> int:
         """Очистка старых остановленных контейнеров"""
